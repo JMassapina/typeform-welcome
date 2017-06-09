@@ -4,7 +4,9 @@ require 'slack-ruby-client'
 require 'yaml'
 require 'rest-client'
 
-$ids = {
+set :port, 9494
+
+$welcome_typeform_ids = {
   form_id: 'rElE8H',
   first_name_id: 'qgXp',
   last_name_id: 'URU1',
@@ -14,7 +16,9 @@ $ids = {
   person_id: 'wbMx'
 }
 
-$api_key = '9fe9fc370675b4ceb78850c38ea431feeb1970aa'
+$my_typeform_api_key = ENV["TYPEFORM_API_KEY"]
+
+$slack_api_token = ENV["SLACK_API_TOKEN"]
 
 $people = YAML.load_file('typeformers.yml')
 
@@ -33,12 +37,11 @@ post '/update_typecoin_multiple_choice' do
   end
 
   unless new_choice.nil?
-    form = JSON.parse(RestClient.get('https://api.typeform.com/forms/mO3Zdn', headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $api_key }))
+    form = JSON.parse(RestClient.get('https://api.typeform.com/forms/mO3Zdn', headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $my_typeform_api_key }))
     multiple_choice = form['fields'].find { |field| field['id'] == 'oIrj' }
     choices = multiple_choice['properties']['choices']
     choices << { 'label' => new_choice }
-    puts form
-    RestClient.put('https://api.typeform.com/forms/mO3Zdn', form.to_json, headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $api_key })
+    RestClient.put('https://api.typeform.com/forms/mO3Zdn', form.to_json, headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $my_typeform_api_key })
   end
 
   [200, 'OK']
@@ -48,25 +51,25 @@ post '/signin' do
   response = JSON.parse(request.body.read)
   form_id = response['form_response']['form_id']
 
-  halt 403 unless form_id == $ids.fetch(:form_id)
+  halt 403 unless form_id == $welcome_typeform_ids.fetch(:form_id)
 
   answers = response['form_response']['answers']
 
-  first_name_object = answers.select { |answer| answer['field']['id'] == $ids.fetch(:first_name_id) }
+  first_name_object = answers.select { |answer| answer['field']['id'] == $welcome_typeform_ids.fetch(:first_name_id) }
   first_name = first_name_object.first.fetch('text')
 
-  last_name_object = answers.select { |answer| answer['field']['id'] == $ids.fetch(:last_name_id) }
+  last_name_object = answers.select { |answer| answer['field']['id'] == $welcome_typeform_ids.fetch(:last_name_id) }
   last_name = last_name_object.first.fetch('text')
 
-  company_object = answers.select { |answer| answer['field']['id'] == $ids.fetch(:company_id) }
+  company_object = answers.select { |answer| answer['field']['id'] == $welcome_typeform_ids.fetch(:company_id) }
   company = company_object.first.fetch('text')
 
-  person_object = answers.select { |answer| answer['field']['id'] == $ids.fetch(:person_id) }
+  person_object = answers.select { |answer| answer['field']['id'] == $welcome_typeform_ids.fetch(:person_id) }
   person = person_object.first.fetch('choice').fetch('label')
 
   person_slack = $people.key(person)
 
-  $web_client = Slack::Web::Client.new(token: 'xoxb-174980522565-fhSyhuMG4jXXFJTeUV3HPUn8')
+  $web_client = Slack::Web::Client.new(token: $slack_api_token)
 
   $web_client.chat_postMessage(
     channel: '@' + person_slack,
