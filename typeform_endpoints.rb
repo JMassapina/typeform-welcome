@@ -4,7 +4,7 @@ require 'slack-ruby-client'
 require 'yaml'
 require 'rest-client'
 
-set :port, 9494
+set :port, 4567
 
 $welcome_typeform_ids = {
   form_id: 'rElE8H',
