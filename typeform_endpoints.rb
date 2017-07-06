@@ -16,34 +16,11 @@ $welcome_typeform_ids = {
   person_id: 'wbMx'
 }
 
-$my_typeform_api_key = ENV["TYPEFORM_API_KEY"]
-
 $slack_api_token = ENV["SLACK_API_TOKEN"]
 
 $people = YAML.load_file('typeformers.yml')
 
 get '/health' do
-  [200, 'OK']
-end
-
-post '/update_typecoin_multiple_choice' do
-  response = JSON.parse(request.body.read)
-  answers = response['form_response']['answers']
-  multiple_choice_answer = answers.find { |answer| answer['field'] == { "id" => "oIrj", "type" => "multiple_choice" } }
-
-  new_choice = nil
-  if multiple_choice_answer['choice'].key?('other')
-    new_choice = multiple_choice_answer['choice']['other']
-  end
-
-  unless new_choice.nil?
-    form = JSON.parse(RestClient.get('https://api.typeform.com/forms/mO3Zdn', headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $my_typeform_api_key }))
-    multiple_choice = form['fields'].find { |field| field['id'] == 'oIrj' }
-    choices = multiple_choice['properties']['choices']
-    choices << { 'label' => new_choice }
-    RestClient.put('https://api.typeform.com/forms/mO3Zdn', form.to_json, headers = { 'Content-Type' => 'application/json', 'X-Typeform-Key' => $my_typeform_api_key })
-  end
-
   [200, 'OK']
 end
 
