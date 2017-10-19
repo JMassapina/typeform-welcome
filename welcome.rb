@@ -51,9 +51,9 @@ post '/signin' do
   begin
     $web_client.chat_postMessage(
       channel: '@' + person_slack,
-      text: 'Hello ' + person + '! ' + first_name + ' ' + last_name + ' from ' + company + ' is here to see you. Make your way to Barception!',
-      username: 'Welcome Bot',
-      icon_emoji: ':wave:'
+      text: 'Boo! ' + person + '! ' + first_name + ' ' + last_name + ' from ' + company + ' is here to scare you. Make your way to Barception, but be careful on your way!',
+      username: 'Boo!',
+      icon_emoji: ':jack_o_lantern:'
     )
   rescue Exception
     return [400, 'Bad Request']
